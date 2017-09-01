@@ -116,7 +116,6 @@ function makeAddUser({ container, intervalManager }) {
 
   const updateBookmark = () => {
     bookmark.href = '#' + Array.from(users.keys()).join(',')
-    console.log(Array.from(users.keys()))
   }
 
   const makeHandleNewCount = username => newCount => {
