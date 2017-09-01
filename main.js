@@ -8,7 +8,6 @@ function createIntervalManager(intervalDelay) {
   const intervalFunctions = []
 
   const intervalID = setInterval(() => {
-    console.log('Go!')
     for (const intervalFunction of intervalFunctions) {
       intervalFunction()
     }
