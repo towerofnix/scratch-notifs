@@ -42,8 +42,8 @@ function getUserMessageCount(username) {
   return fetch(`https://api.scratch.mit.edu/proxy/users/${username}/activity/count`)
     .then(res => res.json())
     .then(data => {
-      if ('count' in data) {
-        return data.count
+      if ('msg_count' in data) {
+        return data.msg_count
       } else {
         throw data
       }
