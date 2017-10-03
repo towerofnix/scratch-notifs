@@ -39,11 +39,11 @@ function createIntervalManager(intervalDelay) {
 }
 
 function getUserMessageCount(username) {
-  return fetch(`https://api.scratch.mit.edu/proxy/users/${username}/activity/count`)
+  return fetch(`https://api.scratch.mit.edu/users/${username}/messages/count`)
     .then(res => res.json())
     .then(data => {
-      if ('msg_count' in data) {
-        return data.msg_count
+      if ('count' in data) {
+        return data.count
       } else {
         throw data
       }
