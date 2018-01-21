@@ -38,8 +38,8 @@ function createIntervalManager(intervalDelay) {
   }
 }
 
-function getUserMessageCount(username) {
-  return fetch(`https://api.scratch.mit.edu/users/${username}/messages/count`)
+function getUserMessageCount(username, token) {
+  return fetch(`https://api.scratch.mit.edu/users/${username}/messages/count?x-token=${token}`)
     .then(res => res.json())
     .then(data => {
       if ('count' in data) {
@@ -52,8 +52,19 @@ function getUserMessageCount(username) {
 
 function makeAddUser({ container, intervalManager }) {
   return function addUser(username, { onCount, onRemove }) {
+    if (username.includes(';')) {
+      alert('That is extremely not a valid username, please fix it.')
+      return
+    }
+
     const removeButton = document.createElement('button')
     removeButton.appendChild(document.createTextNode('Remove'))
+
+    const logInButton = document.createElement('button')
+    logInButton.appendChild(document.createTextNode('Log in'))
+
+    const logOutButton = document.createElement('button')
+    logOutButton.appendChild(document.createTextNode('Log out'))
 
     const label = document.createElement('b')
     label.appendChild(document.createTextNode(username + ':'))
@@ -64,29 +75,87 @@ function makeAddUser({ container, intervalManager }) {
     const parent = document.createElement('p')
     parent.appendChild(removeButton)
     parent.appendChild(document.createTextNode(' '))
+    parent.appendChild(logInButton)
+    parent.appendChild(document.createTextNode(' '))
+    parent.appendChild(logOutButton)
+    parent.appendChild(document.createTextNode(' '))
     parent.appendChild(label)
     parent.appendChild(document.createTextNode(' '))
     parent.appendChild(countSpan)
 
     container.appendChild(parent)
 
-    const interval = intervalManager.addInterval(() => {
-      getUserMessageCount(username)
-        .then(count => {
-          countSpan.firstChild.replaceWith(count)
-          onCount(count)
-        })
-        .catch(error => {
-          countSpan.firstChild.replaceWith(`(Error with code: ${error.code})`)
-          interval.stop()
-          console.error(error)
-        })
-    }, true)
+    const update = async function() {
+      const tokenMatch = document.cookie.match(new RegExp(`token-${username}=([^;]*)`))
+
+      if (tokenMatch === null) {
+        logInButton.style.display = 'inline-block'
+        logOutButton.style.display = 'none'
+        countSpan.firstChild.replaceWith(`(Not logged in)`)
+      } else {
+        logInButton.style.display = 'none'
+        logOutButton.style.display = 'inline-block'
+
+        const token = tokenMatch[1]
+        let count = null
+
+        getUserMessageCount(username, token).then(
+          count => {
+            countSpan.firstChild.replaceWith(count)
+            onCount(count)
+          },
+          error => {
+            console.log(error)
+            countSpan.firstChild.replaceWith(`(Error with code: ${error.code})`)
+            interval.stop()
+            console.error(error)
+          }
+        )
+      }
+    }
+
+    const interval = intervalManager.addInterval(update, true)
+
+    const deleteCookie = function() {
+      document.cookie = `token-${username}=; path=${location.pathname}; expires=Thu, 18 Dec 2013 12:00:00 UTC`
+    }
 
     removeButton.addEventListener('click', () => {
       interval.stop()
       container.removeChild(parent)
+
+      if (confirm('Do you also want to delete your log-in cookie?')) {
+        deleteCookie()
+      }
+
       onRemove()
+    })
+
+    logInButton.addEventListener('click', () => {
+      const token = prompt(
+        'What is your login token? This can be gotten from here:\n' +
+        'https://scratch.mit.edu/session'
+      )
+
+      if (token) {
+        if (token.includes(';')) {
+          alert(
+            'Your login token isn\'t supposed to contain a semicolon..\n' +
+            'Try copy-pasting it again?'
+          )
+          return
+        }
+
+        // Apparently assigning to document.cookie actually adds a cookie???
+        // Thanks, JavaScript(tm).
+        document.cookie = `token-${username}=${token}; path=${location.pathname}`
+        update()
+      }
+    })
+
+    logOutButton.addEventListener('click', () => {
+      deleteCookie()
+      update()
     })
   }
 }
