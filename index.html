@@ -7,6 +7,7 @@
   <body>
     <p>Simple Scratch notification tool. Updates the title (tab) bar when you get notifications.</p>
     <p>You will need to "log in" with your authentication token in order to make this work. I promise not to send this token anywhere (besides to <code>api.scratch.mit.edu</code> for the sole purpose of getting your message count); the code for this project is <a href='https://github.com/towerofnix/scratch-notifs'>here</a>. (Your authentication tokens are stored locally in a cookie which is specific to the path you are viewing this on. That means that other pages on towerofnix.github.io can't access your session ID; only pages under /scratch-notifs.)</p>
+    <p>(Note: Authentication tokens are <strong>not</strong> currently needed by the Scratch message-count API. This project only requires authentication tokens so that if/when auth tokens <em>are</em> required, this program won't break. See <a href='https://github.com/LLK/scratch-rest-api/issues/11'>LLK/scratch-rest-api#11</a>.)</p>
     <div id='container'></div>
     <p><button id='add-user'>Add User</button></p>
     <p><a href='#' id='bookmark'>Bookmark</a></p>
